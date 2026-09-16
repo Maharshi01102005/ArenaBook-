@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}Booking {{ booking.reference }} — ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'my_bookings' %}">My bookings</a></li>
+                <li class="breadcrumb-item active">{{ booking.reference }}</li>
+            </ol>
+        </nav>
+        <h1>Booking {{ booking.reference }}</h1>
+        <p>{{ booking.turf.turf_name }} on {{ booking.booking_date|date:"l, j F Y" }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card-chalk p-4 p-lg-5">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                        <h3 class="mb-0">Reservation</h3>
+                        <span class="badge-status bg-{{ booking.status_class }}-subtle text-{{ booking.status_class }}-emphasis fs-6">{{ booking.get_status_display }}</span>
+                    </div>
+
+                    <div class="timeline-step">
+                        <span class="timeline-dot done"><i class="bi bi-check-lg"></i></span>
+                        <div>
+                            <strong>Slot reserved</strong>
+                            <div class="small text-muted-soft">{{ booking.created_at|date:"j M Y, g:i A" }}</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <span class="timeline-dot {% if booking.is_paid %}done{% endif %}"><i class="bi {% if booking.is_paid %}bi-check-lg{% else %}bi-hourglass{% endif %}"></i></span>
+                        <div>
+                            <strong>{% if booking.is_paid %}Payment received{% else %}Awaiting payment{% endif %}</strong>
+                            <div class="small text-muted-soft">{% if payment %}{{ payment.get_payment_method_display }} · {{ payment.transaction_id }}{% else %}Pay online to confirm the slot{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <span class="timeline-dot {% if booking.status == 'confirmed' %}done{% endif %}"><i class="bi {% if booking.status == 'cancelled' %}bi-x-lg{% else %}bi-flag{% endif %}"></i></span>
+                        <div>
+                            <strong>{% if booking.status == 'cancelled' %}Cancelled{% elif booking.status == 'confirmed' %}Confirmed — see you on the ground{% else %}Not confirmed yet{% endif %}</strong>
+                            <div class="small text-muted-soft">{{ booking.turf.address }}</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background:var(--chalk)">
+                                <div class="small text-muted-soft">Date</div>
+                                <strong>{{ booking.booking_date|date:"j F Y" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background:var(--chalk)">
+                                <div class="small text-muted-soft">Time</div>
+                                <strong>{{ booking.start_time|time:"g:i A" }} – {{ booking.end_time|time:"g:i A" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background:var(--chalk)">
+                                <div class="small text-muted-soft">Duration</div>
+                                <strong>{{ booking.duration_hours }} hour{{ booking.duration_hours|pluralize }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background:var(--chalk)">
+                                <div class="small text-muted-soft">Booked by</div>
+                                <strong>{{ booking.user.full_name }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-chalk p-4">
+                    <h5 class="mb-3">Amount</h5>
+                    <div class="summary-line"><span class="text-muted-soft">Rate</span><strong>₹{{ booking.turf.price_per_hour|money }} / hour</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Hours</span><strong>{{ booking.duration_hours }}</strong></div>
+                    <div class="summary-line total"><span>Total</span><span>₹{{ booking.total_amount|money }}</span></div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        {% if not booking.is_paid and booking.status != 'cancelled' %}
+                        <a href="{% url 'payment' booking.pk %}" class="btn btn-amber">Pay now</a>
+                        {% endif %}
+                        {% if booking.is_paid %}
+                        <a href="{% url 'invoice' booking.pk %}" class="btn btn-pitch"><i class="bi bi-receipt me-1"></i>Invoice</a>
+                        {% endif %}
+                        <a href="{% url 'turf_detail' booking.turf.pk %}" class="btn btn-outline-pitch">View venue</a>
+                        {% if booking.can_cancel and booking.user == user %}
+                        <form method="post" action="{% url 'booking_cancel' booking.pk %}" data-confirm="Cancel this booking?" class="d-grid">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-danger">Cancel booking</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

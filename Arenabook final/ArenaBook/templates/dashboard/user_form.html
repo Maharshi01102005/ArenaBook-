@@ -1,0 +1,75 @@
+{% extends 'dashboard/base.html' %}
+{% load arena_extras %}
+
+{% block title %}{{ user_obj.full_name }} — ArenaBook admin{% endblock %}
+{% block page_title %}{{ user_obj.full_name }}{% endblock %}
+{% block page_sub %}Joined {{ user_obj.date_joined|date:"j F Y" }}{% endblock %}
+
+{% block top_actions %}
+<a href="{% url 'admin_users' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>All users</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="panel">
+            <div class="panel-head"><h5>Account details</h5></div>
+            <div class="panel-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="{{ form.first_name.id_for_label }}">First name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="{{ form.last_name.id_for_label }}">Last name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="{{ form.email.id_for_label }}">E-mail</label>
+                            {{ form.email }}
+                            {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Account is active</label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.is_staff }}
+                        <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">Can open the admin panel</label>
+                    </div>
+
+                    <button class="btn btn-amber mt-3">Save changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-head"><h5>Recent bookings</h5></div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Reference</th><th>Venue</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td><a href="{% url 'admin_booking_detail' booking.pk %}" class="text-pitch fw-semibold">{{ booking.reference }}</a></td>
+                            <td class="small">{{ booking.turf.turf_name }}</td>
+                            <td class="small">{{ booking.booking_date|date:"j M Y" }}</td>
+                            <td>₹{{ booking.total_amount|money }}</td>
+                            <td><span class="badge-status bg-{{ booking.status_class }}-subtle text-{{ booking.status_class }}-emphasis">{{ booking.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted-soft py-4">This user has not booked anything yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

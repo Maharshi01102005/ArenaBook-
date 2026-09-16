@@ -1,0 +1,81 @@
+{% extends 'dashboard/base.html' %}
+{% load arena_extras %}
+
+{% block title %}Bookings — ArenaBook admin{% endblock %}
+{% block page_title %}Bookings{% endblock %}
+{% block page_sub %}Manage every reservation made on the platform{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3"><div class="stat-card"><span class="ic ic-ink"><i class="bi bi-list-ul"></i></span><div><div class="val">{{ totals.all }}</div><div class="lbl">All bookings</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span class="ic ic-amber"><i class="bi bi-hourglass-split"></i></span><div><div class="val">{{ totals.pending }}</div><div class="lbl">Pending</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span class="ic ic-green"><i class="bi bi-check2-circle"></i></span><div><div class="val">{{ totals.confirmed }}</div><div class="lbl">Confirmed</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="stat-card"><span class="ic ic-clay"><i class="bi bi-x-circle"></i></span><div><div class="val">{{ totals.cancelled }}</div><div class="lbl">Cancelled</div></div></div></div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <form method="get" class="d-flex gap-2 flex-wrap">
+            <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Player or venue" style="width:220px">
+            <select name="status" class="form-select form-select-sm" style="width:160px">
+                <option value="">Any status</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-sm btn-pitch">Filter</button>
+            <a href="{% url 'admin_bookings' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>Reference</th><th>Player</th><th>Venue</th><th>Slot</th><th>Amount</th><th>Paid</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td><a href="{% url 'admin_booking_detail' booking.pk %}" class="fw-semibold text-pitch">{{ booking.reference }}</a>
+                        <div class="small text-muted-soft">{{ booking.created_at|date:"j M Y" }}</div></td>
+                    <td>{{ booking.user.full_name }}<div class="small text-muted-soft">{{ booking.user.email }}</div></td>
+                    <td>{{ booking.turf.turf_name }}</td>
+                    <td>{{ booking.booking_date|date:"j M Y" }}<div class="small text-muted-soft">{{ booking.start_time|time:"g:i A" }} – {{ booking.end_time|time:"g:i A" }}</div></td>
+                    <td>₹{{ booking.total_amount|money }}</td>
+                    <td>{% if booking.is_paid %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-dash-circle text-muted"></i>{% endif %}</td>
+                    <td>
+                        <form method="post" action="{% url 'admin_booking_status' booking.pk %}">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if booking.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <a href="{% url 'admin_booking_detail' booking.pk %}" class="btn btn-sm btn-outline-pitch"><i class="bi bi-eye"></i></a>
+                            <form method="post" action="{% url 'admin_booking_delete' booking.pk %}" data-confirm="Delete booking {{ booking.reference }}?">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted-soft py-5">No bookings match this filter.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="panel-body d-flex justify-content-center">
+        <ul class="pagination mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.previous_page_number %}">Previous</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.next_page_number %}">Next</a></li>{% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

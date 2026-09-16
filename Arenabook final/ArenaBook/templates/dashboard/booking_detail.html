@@ -1,0 +1,83 @@
+{% extends 'dashboard/base.html' %}
+{% load arena_extras %}
+
+{% block title %}Booking {{ booking.reference }} — ArenaBook admin{% endblock %}
+{% block page_title %}Booking {{ booking.reference }}{% endblock %}
+{% block page_sub %}Created {{ booking.created_at|date:"j F Y, g:i A" }}{% endblock %}
+
+{% block top_actions %}
+<a href="{% url 'admin_bookings' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>All bookings</a>
+<a href="{% url 'invoice' booking.pk %}" class="btn btn-sm btn-outline-pitch"><i class="bi bi-receipt me-1"></i>Invoice</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="panel mb-3">
+            <div class="panel-head"><h5>Reservation</h5>
+                <span class="badge-status bg-{{ booking.status_class }}-subtle text-{{ booking.status_class }}-emphasis">{{ booking.get_status_display }}</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-sm-6"><div class="small text-muted-soft">Venue</div><strong>{{ booking.turf.turf_name }}</strong></div>
+                    <div class="col-sm-6"><div class="small text-muted-soft">Sport</div><strong>{{ booking.turf.category.category_name }}</strong></div>
+                    <div class="col-sm-6"><div class="small text-muted-soft">Date</div><strong>{{ booking.booking_date|date:"l, j F Y" }}</strong></div>
+                    <div class="col-sm-6"><div class="small text-muted-soft">Time</div><strong>{{ booking.start_time|time:"g:i A" }} – {{ booking.end_time|time:"g:i A" }} ({{ booking.duration_hours }} h)</strong></div>
+                    <div class="col-sm-6"><div class="small text-muted-soft">Amount</div><strong>₹{{ booking.total_amount|money }}</strong></div>
+                    <div class="col-sm-6"><div class="small text-muted-soft">Address</div><strong>{{ booking.turf.address }}</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head"><h5>Payments for this booking</h5></div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Transaction</th><th>Method</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+                    <tbody>
+                        {% for pay in payments %}
+                        <tr>
+                            <td class="fw-semibold">{{ pay.transaction_id|default:"—" }}</td>
+                            <td>{{ pay.get_payment_method_display }}</td>
+                            <td>₹{{ pay.amount|money }}</td>
+                            <td><span class="badge-status bg-{{ pay.status_class }}-subtle text-{{ pay.status_class }}-emphasis">{{ pay.get_status_display }}</span></td>
+                            <td class="small text-muted-soft">{{ pay.payment_date|date:"j M Y, g:i A" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted-soft py-4">No payment recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel mb-3">
+            <div class="panel-head"><h5>Player</h5></div>
+            <div class="panel-body">
+                <div class="d-flex gap-2 align-items-center mb-3">
+                    <span class="avatar-initials">{{ booking.user.initials }}</span>
+                    <div>
+                        <strong>{{ booking.user.full_name }}</strong>
+                        <div class="small text-muted-soft">{{ booking.user.email }}</div>
+                    </div>
+                </div>
+                {% if booking.user.profile.phone_no %}<div class="small"><i class="bi bi-telephone me-1"></i>{{ booking.user.profile.phone_no }}</div>{% endif %}
+                <a href="{% url 'admin_user_edit' booking.user.pk %}" class="btn btn-sm btn-outline-pitch w-100 mt-3">Open player record</a>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head"><h5>Change status</h5></div>
+            <div class="panel-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.status }}
+                    <button class="btn btn-amber w-100 mt-3">Update status</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

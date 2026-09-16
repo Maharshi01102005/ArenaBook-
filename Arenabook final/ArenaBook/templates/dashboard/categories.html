@@ -1,0 +1,45 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Sport categories — ArenaBook admin{% endblock %}
+{% block page_title %}Sport categories{% endblock %}
+{% block page_sub %}Group venues by the sport they host{% endblock %}
+
+{% block top_actions %}
+<a href="{% url 'admin_category_add' %}" class="btn btn-sm btn-amber"><i class="bi bi-plus-lg me-1"></i>Add category</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    {% for category in categories %}
+    <div class="col-md-6 col-xl-4">
+        <div class="panel h-100">
+            <div class="panel-body d-flex gap-3">
+                <span class="ic ic-green" style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.4rem;flex:0 0 auto">
+                    <i class="bi {{ category.icon }}"></i>
+                </span>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1">{{ category.category_name }}</h5>
+                    <p class="small text-muted-soft mb-2">{{ category.description|truncatechars:90|default:"No description added." }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted-soft">{{ category.total }} venue{{ category.total|pluralize }}</span>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'admin_category_edit' category.pk %}" class="btn btn-sm btn-outline-pitch"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{% url 'admin_category_delete' category.pk %}" data-confirm="Delete {{ category.category_name }} and every venue in it?">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="panel"><div class="panel-body text-center text-muted-soft py-5">
+            No categories yet. <a href="{% url 'admin_category_add' %}">Create the first one</a>.
+        </div></div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">Contact</li>
+            </ol>
+        </nav>
+        <h1>Talk to the support desk</h1>
+        <p>Questions about a booking, a refund, or listing your own venue? Send us a note.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card-chalk p-4 p-lg-5">
+                    <h3 class="mb-1">Send a message</h3>
+                    <p class="text-muted-soft">We reply to every enquiry within one working day.</p>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.name.id_for_label }}">Your name</label>
+                                {{ form.name }}
+                                {% for error in form.name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.email.id_for_label }}">E-mail</label>
+                                {{ form.email }}
+                                {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.phone.id_for_label }}">Phone</label>
+                                {{ form.phone }}
+                                {% for error in form.phone.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="{{ form.message.id_for_label }}">Message</label>
+                                {{ form.message }}
+                                {% for error in form.message.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <button class="btn btn-amber mt-4"><i class="bi bi-send me-1"></i>Send message</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card-chalk p-4 mb-4">
+                    <h5 class="mb-3">Support desk</h5>
+                    <div class="d-flex gap-3 mb-3">
+                        <span class="avatar-initials"><i class="bi bi-geo-alt"></i></span>
+                        <div><strong>Office</strong><div class="text-muted-soft small">Infolabz IT Services Pvt. Ltd., Ahmedabad, Gujarat 380015</div></div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <span class="avatar-initials"><i class="bi bi-telephone"></i></span>
+                        <div><strong>Phone</strong><div class="text-muted-soft small">+91 79 4000 1234</div></div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <span class="avatar-initials"><i class="bi bi-envelope"></i></span>
+                        <div><strong>E-mail</strong><div class="text-muted-soft small">support@arenabook.com</div></div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <span class="avatar-initials"><i class="bi bi-clock"></i></span>
+                        <div><strong>Hours</strong><div class="text-muted-soft small">7 am – 11 pm, every day</div></div>
+                    </div>
+                </div>
+
+                <div class="card-chalk p-4">
+                    <h5 class="mb-3">Common questions</h5>
+                    <div class="accordion accordion-flush" id="faq">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq1">Can I cancel a booking?</button></h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faq">
+                                <div class="accordion-body text-muted-soft small">Yes. Open My bookings and cancel any slot before its match date. The venue is released for other players immediately.</div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq2">How do I list my turf?</button></h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq">
+                                <div class="accordion-body text-muted-soft small">Send us the venue name, sport, address and hourly rate through this form. Our team sets up your administrator account.</div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq3">Which payment methods work?</button></h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq">
+                                <div class="accordion-body text-muted-soft small">Credit card, debit card, PayPal and other wallet options are supported at checkout.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

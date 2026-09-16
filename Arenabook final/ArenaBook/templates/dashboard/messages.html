@@ -1,0 +1,51 @@
+{% extends 'dashboard/base.html' %}
+{% load arena_extras %}
+
+{% block title %}Messages — ArenaBook admin{% endblock %}
+{% block page_title %}Contact messages{% endblock %}
+{% block page_sub %}{{ unread }} unread enquir{{ unread|pluralize:"y,ies" }}{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <div class="panel-head"><h5>Inbox</h5></div>
+    <div class="panel-body">
+        {% for item in items %}
+        <div class="d-flex gap-3 pb-3 mb-3 border-bottom {% if not item.is_read %}fw-semibold{% endif %}">
+            <span class="avatar-initials"><i class="bi bi-envelope{% if item.is_read %}-open{% endif %}"></i></span>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between flex-wrap gap-2 align-items-start">
+                    <div>
+                        {{ item.name }}
+                        <span class="small text-muted-soft fw-normal">· {{ item.email }}{% if item.phone %} · {{ item.phone }}{% endif %}</span>
+                        {% if not item.is_read %}<span class="badge-status bg-amber text-ink ms-1">New</span>{% endif %}
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted-soft fw-normal">{{ item.created_at|date:"j M Y, g:i A" }}</span>
+                        <form method="post" action="{% url 'admin_message_read' item.pk %}">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-secondary" title="Mark as {% if item.is_read %}unread{% else %}read{% endif %}"><i class="bi bi-check2"></i></button>
+                        </form>
+                        <form method="post" action="{% url 'admin_message_delete' item.pk %}" data-confirm="Delete this message?">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+                <p class="mb-0 mt-1 small text-muted-soft fw-normal">{{ item.message|linebreaksbr }}</p>
+                <a href="mailto:{{ item.email }}" class="btn btn-sm btn-outline-pitch mt-2 fw-normal">Reply by e-mail</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-muted-soft py-5 mb-0">The inbox is empty.</p>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+        <ul class="pagination mb-0 justify-content-center">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.previous_page_number %}">Previous</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.next_page_number %}">Next</a></li>{% endif %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

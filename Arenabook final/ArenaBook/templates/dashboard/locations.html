@@ -1,0 +1,96 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Locations — ArenaBook admin{% endblock %}
+{% block page_title %}Locations{% endblock %}
+{% block page_sub %}Countries, states and cities used by venues and player profiles{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-head"><h5>Countries</h5><span class="small text-muted-soft">{{ countries|length }}</span></div>
+            <div class="panel-body">
+                <form method="post" class="d-flex gap-2 mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="kind" value="country">
+                    <input type="text" name="name" class="form-control form-control-sm" placeholder="New country" required>
+                    <button class="btn btn-sm btn-pitch"><i class="bi bi-plus-lg"></i></button>
+                </form>
+                {% for country in countries %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span>{{ country.name }} <span class="small text-muted-soft">· {{ country.total }} state{{ country.total|pluralize }}</span></span>
+                    <form method="post" action="{% url 'admin_location_delete' 'country' country.pk %}" data-confirm="Delete {{ country.name }} and everything under it?">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="small text-muted-soft mb-0">No countries added yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-head"><h5>States</h5><span class="small text-muted-soft">{{ states|length }}</span></div>
+            <div class="panel-body">
+                <form method="post" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="kind" value="state">
+                    <select name="parent" class="form-select form-select-sm mb-2" required>
+                        <option value="">Choose country</option>
+                        {% for country in countries %}<option value="{{ country.pk }}">{{ country.name }}</option>{% endfor %}
+                    </select>
+                    <div class="d-flex gap-2">
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="New state" required>
+                        <button class="btn btn-sm btn-pitch"><i class="bi bi-plus-lg"></i></button>
+                    </div>
+                </form>
+                {% for state in states %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span>{{ state.name }} <span class="small text-muted-soft">· {{ state.country.name }} · {{ state.total }} cit{{ state.total|pluralize:"y,ies" }}</span></span>
+                    <form method="post" action="{% url 'admin_location_delete' 'state' state.pk %}" data-confirm="Delete {{ state.name }}?">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="small text-muted-soft mb-0">No states added yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-head"><h5>Cities</h5><span class="small text-muted-soft">{{ cities|length }}</span></div>
+            <div class="panel-body">
+                <form method="post" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="kind" value="city">
+                    <select name="parent" class="form-select form-select-sm mb-2" required>
+                        <option value="">Choose state</option>
+                        {% for state in states %}<option value="{{ state.pk }}">{{ state.name }} ({{ state.country.name }})</option>{% endfor %}
+                    </select>
+                    <div class="d-flex gap-2">
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="New city" required>
+                        <button class="btn btn-sm btn-pitch"><i class="bi bi-plus-lg"></i></button>
+                    </div>
+                </form>
+                {% for city in cities %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span>{{ city.name }} <span class="small text-muted-soft">· {{ city.state.name }}</span></span>
+                    <form method="post" action="{% url 'admin_location_delete' 'city' city.pk %}" data-confirm="Delete {{ city.name }}?">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="small text-muted-soft mb-0">No cities added yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

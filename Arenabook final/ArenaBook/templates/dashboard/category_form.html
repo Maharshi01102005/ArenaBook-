@@ -1,0 +1,50 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if category %}Edit category{% else %}New category{% endif %} — ArenaBook admin{% endblock %}
+{% block page_title %}{% if category %}Edit category{% else %}New sport category{% endif %}{% endblock %}
+{% block page_sub %}{% if category %}{{ category.category_name }}{% else %}Add a sport players can filter by{% endif %}{% endblock %}
+
+{% block top_actions %}
+<a href="{% url 'admin_categories' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.category_name.id_for_label }}">Category name</label>
+                        {{ form.category_name }}
+                        {% for error in form.category_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.icon.id_for_label }}">Icon class</label>
+                        {{ form.icon }}
+                        <div class="small text-muted-soft mt-1">Any Bootstrap icon name, for example <code>bi-dribbble</code>, <code>bi-bullseye</code>, <code>bi-water</code>.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.image.id_for_label }}">Cover image</label>
+                        {{ form.image }}
+                        {% if category and category.image %}<img src="{{ category.image.url }}" class="img-fluid rounded mt-2" style="max-height:160px" alt="">{% endif %}
+                    </div>
+
+                    <button class="btn btn-amber">{% if category %}Save changes{% else %}Create category{% endif %}</button>
+                    <a href="{% url 'admin_categories' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}Sports venues — ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">Venues</li>
+            </ol>
+        </nav>
+        <h1>Find your ground</h1>
+        <p>{{ total_results }} venue{{ total_results|pluralize }} match your search.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <form method="get" class="filter-card">
+                    <h6>Refine results</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="q">Keyword</label>
+                        <input type="text" id="q" name="q" value="{{ q }}" class="form-control" placeholder="Turf name or area">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="category">Sport</label>
+                        <select id="category" name="category" class="form-select">
+                            <option value="">Any sport</option>
+                            {% for category in categories %}
+                            <option value="{{ category.pk }}" {% if selected_category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.category_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="city">City</label>
+                        <select id="city" name="city" class="form-select">
+                            <option value="">Anywhere</option>
+                            {% for city in cities %}
+                            <option value="{{ city.pk }}" {% if selected_city == city.pk|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="max_price">Maximum price per hour</label>
+                        <input type="number" id="max_price" name="max_price" value="{{ max_price }}" class="form-control" min="0" step="50" placeholder="e.g. 1000">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="sort">Sort by</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest first</option>
+                            <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: low to high</option>
+                            <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: high to low</option>
+                            <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Highest rated</option>
+                            <option value="name" {% if sort == 'name' %}selected{% endif %}>Name A–Z</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-pitch w-100 mb-2">Apply filters</button>
+                    <a href="{% url 'turf_list' %}" class="btn btn-outline-pitch w-100">Clear all</a>
+                </form>
+            </div>
+
+            <div class="col-lg-9">
+                {% if turfs %}
+                <div class="row g-4">
+                    {% for turf in turfs %}
+                    <div class="col-md-6 col-xl-4">
+                        {% include 'partials/venue_card.html' with turf=turf %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.previous_page_number %}"><i class="bi bi-chevron-left"></i></a></li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?{% query_replace page=num %}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.next_page_number %}"><i class="bi bi-chevron-right"></i></a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="card-chalk empty-state">
+                    <div class="icon"><i class="bi bi-search"></i></div>
+                    <h5>Nothing matched those filters</h5>
+                    <p class="text-muted-soft">Try a wider price range, or clear the filters to see every venue.</p>
+                    <a href="{% url 'turf_list' %}" class="btn btn-pitch">Show all venues</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

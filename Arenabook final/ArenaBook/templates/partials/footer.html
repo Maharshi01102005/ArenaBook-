@@ -1,0 +1,59 @@
+{% load static %}
+<footer class="site-footer">
+    <div class="container">
+        <div class="row g-4 py-5">
+            <div class="col-lg-4">
+                <a class="navbar-brand d-inline-flex mb-3" href="{% url 'home' %}">
+                    <span class="brand-mark"><i class="bi bi-hexagon-fill"></i></span>
+                    <span class="brand-text">Arena<span class="brand-accent">Book</span></span>
+                </a>
+                <p class="footer-text">Find a ground, lock a slot, pay online. ArenaBook connects players with verified turfs and courts across the country — no phone calls, no double bookings.</p>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="#" class="social-dot" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="social-dot" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="social-dot" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" class="social-dot" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h6 class="footer-head">Explore</h6>
+                <ul class="footer-list">
+                    <li><a href="{% url 'turf_list' %}">All venues</a></li>
+                    <li><a href="{% url 'category_list' %}">Sports</a></li>
+                    <li><a href="{% url 'about' %}">About us</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h6 class="footer-head">Account</h6>
+                <ul class="footer-list">
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'profile' %}">My profile</a></li>
+                    <li><a href="{% url 'my_bookings' %}">My bookings</a></li>
+                    <li><a href="{% url 'logout' %}">Sign out</a></li>
+                    {% else %}
+                    <li><a href="{% url 'login' %}">Sign in</a></li>
+                    <li><a href="{% url 'register' %}">Create account</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="col-lg-4">
+                <h6 class="footer-head">Reach the team</h6>
+                <ul class="footer-list footer-contact">
+                    <li><i class="bi bi-geo-alt"></i> Infolabz IT Services, Ahmedabad, Gujarat 380015</li>
+                    <li><i class="bi bi-telephone"></i> +91 79 4000 1234</li>
+                    <li><i class="bi bi-envelope"></i> support@arenabook.com</li>
+                    <li><i class="bi bi-clock"></i> Support desk open 7 am – 11 pm, all week</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© {% now "Y" %} ArenaBook — Online Sports Venue Reservation System</span>
+            <span>Built with Django {% if user.is_staff %}· <a href="{% url 'dashboard' %}">Admin panel</a>{% endif %}</span>
+        </div>
+    </div>
+</footer>

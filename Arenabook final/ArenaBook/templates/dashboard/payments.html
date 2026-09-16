@@ -1,0 +1,89 @@
+{% extends 'dashboard/base.html' %}
+{% load arena_extras %}
+
+{% block title %}Payments — ArenaBook admin{% endblock %}
+{% block page_title %}Payments{% endblock %}
+{% block page_sub %}Transactions recorded by the booking gateway{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stat-card"><span class="ic ic-green"><i class="bi bi-cash-stack"></i></span><div><div class="val">₹{{ total_revenue|money }}</div><div class="lbl">Collected</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><span class="ic ic-amber"><i class="bi bi-check2-all"></i></span><div><div class="val">{{ completed_count }}</div><div class="lbl">Completed payments</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><span class="ic ic-clay"><i class="bi bi-exclamation-triangle"></i></span><div><div class="val">{{ failed_count }}</div><div class="lbl">Failed payments</div></div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="panel">
+            <div class="panel-head">
+                <h5>All transactions</h5>
+                <form method="get">
+                    <select name="status" class="form-select form-select-sm" style="width:170px" onchange="this.form.submit()">
+                        <option value="">Any status</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead><tr><th>Transaction</th><th>Player</th><th>Venue</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for pay in payments %}
+                        <tr>
+                            <td class="fw-semibold">{{ pay.transaction_id|default:"—" }}<div class="small text-muted-soft">{{ pay.payment_date|date:"j M Y" }}</div></td>
+                            <td>{{ pay.user.full_name }}</td>
+                            <td class="small">{{ pay.booking.turf.turf_name }}<div class="text-muted-soft">{{ pay.booking.reference }}</div></td>
+                            <td>₹{{ pay.amount|money }}</td>
+                            <td>{{ pay.get_payment_method_display }}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_payment_status' pay.pk %}">
+                                    {% csrf_token %}
+                                    <select name="status" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
+                                        {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if pay.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted-soft py-5">No payments recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <div class="panel-body d-flex justify-content-center">
+                <ul class="pagination mb-0">
+                    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.previous_page_number %}">Previous</a></li>{% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.next_page_number %}">Next</a></li>{% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel">
+            <div class="panel-head"><h5>By payment method</h5></div>
+            <div class="panel-body">
+                {% for row in method_rows %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold">{{ row.payment_method|pretty }}</span>
+                        <span class="text-muted-soft">₹{{ row.total|money }} · {{ row.count }}</span>
+                    </div>
+                    <div class="bar-track"><div class="bar-fill amber" style="width:{{ row.total|percent_of:total_revenue }}%"></div></div>
+                </div>
+                {% empty %}
+                <p class="small text-muted-soft mb-0">Nothing to summarise yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

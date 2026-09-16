@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}My profile — ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">My profile</li>
+            </ol>
+        </nav>
+        <h1>{{ user.full_name }}</h1>
+        <p>Member since {{ user.date_joined|date:"F Y" }} · {{ user.email }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card-chalk p-4 text-center mb-4">
+                    {% if user.avatar_url %}
+                    <img src="{{ user.avatar_url }}" alt="" class="rounded-circle mb-3" style="width:104px;height:104px;object-fit:cover">
+                    {% else %}
+                    <div class="avatar-initials mx-auto mb-3" style="width:104px;height:104px;font-size:2rem">{{ user.initials }}</div>
+                    {% endif %}
+                    <h4 class="mb-0">{{ user.full_name }}</h4>
+                    <p class="text-muted-soft small">{{ profile.location|default:"Location not set" }}</p>
+                    {% if profile.phone_no %}<p class="small mb-0"><i class="bi bi-telephone me-1"></i>{{ profile.phone_no }}</p>{% endif %}
+                </div>
+
+                <div class="card-chalk p-4">
+                    <h6 class="mb-3">Your activity</h6>
+                    <div class="summary-line"><span class="text-muted-soft">Total bookings</span><strong>{{ stats.total }}</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Confirmed</span><strong>{{ stats.confirmed }}</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Awaiting payment</span><strong>{{ stats.pending }}</strong></div>
+                    <div class="summary-line total"><span>Spent</span><span>₹{{ stats.spent|money }}</span></div>
+                    <a href="{% url 'my_bookings' %}" class="btn btn-outline-pitch w-100 mt-3">View my bookings</a>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card-chalk p-4 p-lg-5 mb-4">
+                    <h3 class="mb-1">Account details</h3>
+                    <p class="text-muted-soft">Keep your contact details current so venue owners can reach you.</p>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="profile">
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="{{ user_form.first_name.id_for_label }}">First name</label>
+                                {{ user_form.first_name }}
+                                {% for error in user_form.first_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="{{ user_form.last_name.id_for_label }}">Last name</label>
+                                {{ user_form.last_name }}
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="{{ user_form.email.id_for_label }}">E-mail</label>
+                                {{ user_form.email }}
+                                {% for error in user_form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="{{ profile_form.phone_no.id_for_label }}">Phone number</label>
+                                {{ profile_form.phone_no }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="{{ profile_form.address.id_for_label }}">Address</label>
+                                {{ profile_form.address }}
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label" for="{{ profile_form.country.id_for_label }}">Country</label>
+                                {{ profile_form.country }}
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label" for="{{ profile_form.state.id_for_label }}">State</label>
+                                {{ profile_form.state }}
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label" for="{{ profile_form.city.id_for_label }}">City</label>
+                                {{ profile_form.city }}
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="{{ user_form.profile_image.id_for_label }}">Profile photo</label>
+                                {{ user_form.profile_image }}
+                            </div>
+                        </div>
+
+                        <button class="btn btn-pitch mt-4">Save changes</button>
+                    </form>
+                </div>
+
+                <div class="card-chalk p-4 p-lg-5">
+                    <h3 class="mb-1">Change password</h3>
+                    <p class="text-muted-soft">Pick something you do not use on other sites.</p>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="password">
+
+                        {% for field in password_form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        <button class="btn btn-outline-pitch">Update password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

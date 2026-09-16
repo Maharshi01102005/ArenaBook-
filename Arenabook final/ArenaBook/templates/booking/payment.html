@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}Pay for {{ booking.reference }} — ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'my_bookings' %}">My bookings</a></li>
+                <li class="breadcrumb-item active">Payment</li>
+            </ol>
+        </nav>
+        <h1>Complete your payment</h1>
+        <p>Your slot is held until you pay. Booking reference {{ booking.reference }}.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card-chalk p-4 p-lg-5">
+                    <h3 class="mb-4">Choose how to pay</h3>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>
+                        {% endif %}
+
+                        {% for value, label in form.fields.payment_method.choices %}
+                        <label class="pay-method">
+                            <input type="radio" name="payment_method" value="{{ value }}" class="form-check-input"
+                                   {% if forloop.first %}checked{% endif %}>
+                            <i class="bi {% if value == 'credit_card' %}bi-credit-card-2-front{% elif value == 'debit_card' %}bi-credit-card{% elif value == 'paypal' %}bi-paypal{% else %}bi-wallet2{% endif %} fs-5 text-pitch"></i>
+                            <span>{{ label }}</span>
+                        </label>
+                        {% endfor %}
+
+                        <div id="cardPanel" class="mt-4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label" for="{{ form.card_name.id_for_label }}">Name on card</label>
+                                    {{ form.card_name }}
+                                    {% for error in form.card_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="{{ form.card_number.id_for_label }}">Card number</label>
+                                    {{ form.card_number }}
+                                    {% for error in form.card_number.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label" for="{{ form.expiry.id_for_label }}">Expiry</label>
+                                    {{ form.expiry }}
+                                    {% for error in form.expiry.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label" for="{{ form.cvv.id_for_label }}">CVV</label>
+                                    {{ form.cvv }}
+                                    {% for error in form.cvv.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                            </div>
+                            <p class="small text-muted-soft mt-3 mb-0"><i class="bi bi-shield-lock me-1"></i>This is a demonstration gateway built for the project. Card details are validated but never stored.</p>
+                        </div>
+
+                        <button class="btn btn-amber btn-lg w-100 mt-4">Pay ₹{{ booking.total_amount|money }}</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card-chalk p-4">
+                    <h5 class="mb-3">Order summary</h5>
+
+                    <div class="d-flex gap-3 pb-3 border-bottom mb-3">
+                        <span class="thumb-sm thumb-sm--ph"><i class="bi {{ booking.turf.category.icon }}"></i></span>
+                        <div>
+                            <strong>{{ booking.turf.turf_name }}</strong>
+                            <div class="small text-muted-soft">{{ booking.turf.category.category_name }} · {{ booking.turf.location|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="summary-line"><span class="text-muted-soft">Date</span><strong>{{ booking.booking_date|date:"l, j F Y" }}</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Time</span><strong>{{ booking.start_time|time:"g:i A" }} – {{ booking.end_time|time:"g:i A" }}</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Duration</span><strong>{{ booking.duration_hours }} hour{{ booking.duration_hours|pluralize }}</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Rate</span><strong>₹{{ booking.turf.price_per_hour|money }} / hour</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Reference</span><strong>{{ booking.reference }}</strong></div>
+                    <div class="summary-line total"><span>Amount due</span><span>₹{{ booking.total_amount|money }}</span></div>
+
+                    <a href="{% url 'my_bookings' %}" class="btn btn-outline-pitch w-100 mt-3">Back to my bookings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

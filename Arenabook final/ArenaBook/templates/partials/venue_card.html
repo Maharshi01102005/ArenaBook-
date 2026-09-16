@@ -1,0 +1,36 @@
+{% load arena_extras %}
+<article class="card-chalk venue-card">
+    <div class="venue-thumb">
+        {% if turf.image %}
+        <img src="{{ turf.image.url }}" alt="{{ turf.turf_name }}">
+        {% else %}
+        <i class="bi {{ turf.category.icon }} placeholder-icon"></i>
+        <span class="thumb-lines"></span>
+        {% endif %}
+        <span class="venue-badge"><i class="bi {{ turf.category.icon }} me-1"></i>{{ turf.category.category_name }}</span>
+        {% if turf.is_featured %}<span class="venue-badge venue-badge--amber">Popular</span>{% endif %}
+    </div>
+
+    <div class="venue-body">
+        <h3 class="venue-title"><a href="{{ turf.get_absolute_url }}">{{ turf.turf_name }}</a></h3>
+        <div class="venue-meta"><i class="bi bi-geo-alt"></i>{{ turf.location|default:"Location not set" }}</div>
+        <div class="venue-meta">
+            <i class="bi bi-clock"></i>{{ turf.open_time|time:"g:i A" }} – {{ turf.close_time|time:"g:i A" }}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="stars">
+                {% for star in turf.rating_stars %}
+                    {% if star == 'full' %}<i class="bi bi-star-fill"></i>
+                    {% elif star == 'half' %}<i class="bi bi-star-half"></i>
+                    {% else %}<i class="bi bi-star"></i>{% endif %}
+                {% endfor %}
+            </span>
+            <span class="small text-muted-soft">{{ turf.average_rating }} ({{ turf.review_count }})</span>
+        </div>
+
+        <div class="venue-foot">
+            <span class="price-tag">₹{{ turf.price_per_hour|money }} <small>/ hour</small></span>
+            <a href="{{ turf.get_absolute_url }}" class="btn btn-pitch btn-sm">Check slots</a>
+        </div>
+    </div>
+</article>

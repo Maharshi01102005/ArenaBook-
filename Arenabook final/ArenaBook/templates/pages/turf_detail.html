@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}{{ turf.turf_name }} — ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'turf_list' %}">Venues</a></li>
+                <li class="breadcrumb-item active">{{ turf.turf_name }}</li>
+            </ol>
+        </nav>
+        <h1>{{ turf.turf_name }}</h1>
+        <p><i class="bi bi-geo-alt me-1"></i>{{ turf.address }}{% if turf.location %} · {{ turf.location }}{% endif %}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            <!-- ------------------------------------------------ left column -->
+            <div class="col-lg-8">
+                <div class="gallery-main">
+                    {% if turf.image %}
+                    <img id="galleryMain" src="{{ turf.image.url }}" alt="{{ turf.turf_name }}">
+                    {% else %}
+                    <i class="bi {{ turf.category.icon }}" style="font-size:4rem;color:rgba(243,246,240,.4)"></i>
+                    {% endif %}
+                </div>
+
+                {% if turf.images.all %}
+                <div class="gallery-thumbs">
+                    {% if turf.image %}
+                    <img src="{{ turf.image.url }}" data-gallery-thumb data-full="{{ turf.image.url }}" class="active" alt="">
+                    {% endif %}
+                    {% for pic in turf.images.all %}
+                    <img src="{{ pic.image.url }}" data-gallery-thumb data-full="{{ pic.image.url }}" alt="{{ pic.caption }}">
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="card-chalk p-4 mt-4">
+                    <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="stars">
+                                {% for star in turf.rating_stars %}
+                                    {% if star == 'full' %}<i class="bi bi-star-fill"></i>
+                                    {% elif star == 'half' %}<i class="bi bi-star-half"></i>
+                                    {% else %}<i class="bi bi-star"></i>{% endif %}
+                                {% endfor %}
+                            </span>
+                            <strong>{{ turf.average_rating }}</strong>
+                            <span class="text-muted-soft small">· {{ turf.review_count }} review{{ turf.review_count|pluralize }}</span>
+                        </div>
+                        <span class="amenity-pill mb-0"><i class="bi bi-people"></i> Up to {{ turf.capacity }} players</span>
+                    </div>
+
+                    <h4>About this venue</h4>
+                    <p class="text-muted-soft">{{ turf.description|default:"The owner has not added a description for this venue yet."|linebreaksbr }}</p>
+
+                    {% if turf.amenity_list %}
+                    <h5 class="mt-4 mb-2">Facilities</h5>
+                    <div>
+                        {% for amenity in turf.amenity_list %}
+                        <span class="amenity-pill"><i class="bi bi-check-circle"></i>{{ amenity }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background:var(--chalk)">
+                                <div class="small text-muted-soft">Open hours</div>
+                                <strong>{{ turf.open_time|time:"g:i A" }} – {{ turf.close_time|time:"g:i A" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded" style="background:var(--chalk)">
+                                <div class="small text-muted-soft">Sport</div>
+                                <strong>{{ turf.category.category_name }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- reviews -->
+                <div class="card-chalk p-4 mt-4">
+                    <h4 class="mb-3">Player reviews</h4>
+
+                    {% if user.is_authenticated and can_review %}
+                    <form method="post" action="{% url 'review_submit' turf.pk %}" class="mb-4 p-3 rounded" style="background:var(--chalk)">
+                        {% csrf_token %}
+                        <label class="form-label d-block">{% if my_review %}Update your rating{% else %}Rate this venue{% endif %}</label>
+                        <div class="rating-input mb-2">
+                            {% for value in "54321"|make_list %}
+                            <input type="radio" name="rating_choice" id="star{{ value }}" value="{{ value }}" data-rating
+                                   {% if my_review and my_review.rating|stringformat:"s" == value %}checked{% endif %}>
+                            <label for="star{{ value }}"><i class="bi bi-star-fill"></i></label>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="id_rating" value="{% if my_review %}{{ my_review.rating }}{% else %}5{% endif %}">
+                        <textarea name="comment" rows="3" class="form-control mb-2" placeholder="How was the surface, lighting and staff?">{% if my_review %}{{ my_review.comment }}{% endif %}</textarea>
+                        <button class="btn btn-pitch btn-sm">{% if my_review %}Update review{% else %}Post review{% endif %}</button>
+                        {% if my_review %}
+                        <button form="deleteReview" class="btn btn-outline-danger btn-sm">Delete</button>
+                        {% endif %}
+                    </form>
+                    {% if my_review %}
+                    <form method="post" action="{% url 'review_delete' my_review.pk %}" id="deleteReview" data-confirm="Delete your review?">{% csrf_token %}</form>
+                    {% endif %}
+                    {% elif user.is_authenticated %}
+                    <p class="small text-muted-soft">You can leave a review once you have a confirmed booking here.</p>
+                    {% endif %}
+
+                    {% for review in reviews %}
+                    <div class="d-flex gap-3 py-3 border-bottom">
+                        <span class="avatar-initials">{{ review.user.initials }}</span>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                                <strong>{{ review.user.full_name }}</strong>
+                                <span class="small text-muted-soft">{{ review.created_at|date:"j M Y" }}</span>
+                            </div>
+                            <div class="stars small">
+                                {% for _ in review.star_range %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                {% for _ in review.empty_range %}<i class="bi bi-star"></i>{% endfor %}
+                            </div>
+                            <p class="mb-0 mt-1 text-muted-soft">{{ review.comment }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted-soft mb-0">No reviews yet. Be the first team to play here and rate it.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ----------------------------------------------- right column -->
+            <div class="col-lg-4">
+                <div class="booking-box">
+                    <div class="d-flex justify-content-between align-items-baseline mb-3">
+                        <span class="price-tag" style="font-size:1.6rem">₹{{ turf.price_per_hour|money }}</span>
+                        <span class="text-muted-soft small">per hour</span>
+                    </div>
+
+                    <form method="post" action="{% url 'booking_create' turf.pk %}">
+                        {% csrf_token %}
+
+                        <label class="form-label" for="id_booking_date">Date</label>
+                        {{ booking_form.booking_date }}
+
+                        <label class="form-label mt-3">Available slots</label>
+                        <div id="slotGrid" class="slot-grid"
+                             data-url="{% url 'slot_availability' turf.pk %}"
+                             data-price="{{ turf.price_per_hour }}">
+                            {% for slot in slots %}
+                            <div class="slot-chip {% if slot.taken %}taken{% endif %}"
+                                 data-start="{{ slot.start|time:'H:i' }}"
+                                 data-end="{{ slot.end|time:'H:i' }}"
+                                 {% if slot.taken %}title="Already booked"{% endif %}>
+                                {{ slot.start|time:"g:i A" }} - {{ slot.end|time:"g:i A" }}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row g-2 mt-3">
+                            <div class="col-6">
+                                <label class="form-label" for="id_start_time">Start</label>
+                                {{ booking_form.start_time }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" for="id_end_time">End</label>
+                                {{ booking_form.end_time }}
+                            </div>
+                        </div>
+
+                        <div class="summary-line total">
+                            <span>Total</span>
+                            <span id="priceEstimate">--</span>
+                        </div>
+
+                        {% if user.is_authenticated %}
+                        <button class="btn btn-amber w-100 mt-2"><i class="bi bi-calendar2-check me-1"></i>Reserve this slot</button>
+                        <p class="small text-muted-soft text-center mt-2 mb-0">You pay on the next screen. Cancel any time before the match day.</p>
+                        {% else %}
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-amber w-100 mt-2">Sign in to book</a>
+                        <p class="small text-muted-soft text-center mt-2 mb-0">New here? <a href="{% url 'register' %}">Create an account</a> — it takes 30 seconds.</p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if related %}
+        <div class="section-head mt-5">
+            <h2>More {{ turf.category.category_name|lower }} venues</h2>
+        </div>
+        <div class="row g-4">
+            {% for other in related %}
+            <div class="col-md-6 col-lg-3">{% include 'partials/venue_card.html' with turf=other %}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

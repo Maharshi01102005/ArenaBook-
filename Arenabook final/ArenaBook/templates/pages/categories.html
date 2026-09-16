@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports on ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">Sports</li>
+            </ol>
+        </nav>
+        <h1>Sports we cover</h1>
+        <p>Each category below lists the grounds and courts currently taking bookings.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-4">
+            {% for category in categories %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card-chalk h-100">
+                    <div class="venue-thumb" style="aspect-ratio:16/8">
+                        {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.category_name }}">
+                        {% else %}
+                        <i class="bi {{ category.icon }} placeholder-icon"></i>
+                        <span class="thumb-lines"></span>
+                        {% endif %}
+                    </div>
+                    <div class="venue-body">
+                        <h3 class="venue-title">{{ category.category_name }}</h3>
+                        <p class="text-muted-soft small mb-0">{{ category.description|default:"Venues for this sport are being added." }}</p>
+                        <div class="venue-foot">
+                            <span class="text-muted-soft small">{{ category.total }} venue{{ category.total|pluralize }}</span>
+                            <a href="{% url 'turf_list' %}?category={{ category.pk }}" class="btn btn-pitch btn-sm">Browse</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card-chalk empty-state">
+                    <div class="icon"><i class="bi bi-trophy"></i></div>
+                    <h5>No sports added yet</h5>
+                    <p class="text-muted-soft">An administrator can add sport categories from the admin panel.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}My bookings — ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">My bookings</li>
+            </ol>
+        </nav>
+        <h1>My bookings</h1>
+        <p>Every slot you have reserved, with its payment status.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a href="{% url 'my_bookings' %}" class="btn btn-sm {% if not status %}btn-pitch{% else %}btn-outline-pitch{% endif %}">All</a>
+            {% for value, label in status_choices %}
+            <a href="?status={{ value }}" class="btn btn-sm {% if status == value %}btn-pitch{% else %}btn-outline-pitch{% endif %}">{{ label }}</a>
+            {% endfor %}
+        </div>
+
+        {% for booking in bookings %}
+        <div class="booking-row">
+            <div class="date-block">
+                <div class="d">{{ booking.booking_date|date:"d" }}</div>
+                <div class="m">{{ booking.booking_date|date:"M Y" }}</div>
+            </div>
+
+            <div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h5 class="mb-0"><a href="{% url 'turf_detail' booking.turf.pk %}" class="text-pitch">{{ booking.turf.turf_name }}</a></h5>
+                    <span class="badge-status bg-{{ booking.status_class }}-subtle text-{{ booking.status_class }}-emphasis">{{ booking.get_status_display }}</span>
+                    {% if booking.is_paid %}<span class="badge-status bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle me-1"></i>Paid</span>{% endif %}
+                </div>
+                <div class="text-muted-soft small mt-1">
+                    <i class="bi bi-clock me-1"></i>{{ booking.start_time|time:"g:i A" }} – {{ booking.end_time|time:"g:i A" }} ({{ booking.duration_hours }} h)
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-hash"></i>{{ booking.reference }}
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-geo-alt me-1"></i>{{ booking.turf.location|default:"—" }}
+                </div>
+            </div>
+
+            <div class="booking-actions text-md-end">
+                <div class="price-tag mb-2">₹{{ booking.total_amount|money }}</div>
+                <div class="d-flex gap-2 flex-wrap justify-content-md-end">
+                    <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-pitch btn-sm">Details</a>
+                    {% if not booking.is_paid and booking.status != 'cancelled' %}
+                    <a href="{% url 'payment' booking.pk %}" class="btn btn-amber btn-sm">Pay now</a>
+                    {% endif %}
+                    {% if booking.can_cancel %}
+                    <form method="post" action="{% url 'booking_cancel' booking.pk %}" data-confirm="Cancel booking {{ booking.reference }}?">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">Cancel</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card-chalk empty-state">
+            <div class="icon"><i class="bi bi-calendar2-x"></i></div>
+            <h5>No bookings here yet</h5>
+            <p class="text-muted-soft">Pick a venue and reserve your first slot — it takes a minute.</p>
+            <a href="{% url 'turf_list' %}" class="btn btn-pitch">Browse venues</a>
+        </div>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.previous_page_number %}">Previous</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.next_page_number %}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

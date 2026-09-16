@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load arena_extras %}
+
+{% block title %}ArenaBook — Book sports turfs and courts near you{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="hero-chip"><i class="bi bi-lightning-charge-fill"></i> Slots confirm instantly</span>
+                <h1>The ground is free tonight. Take it.</h1>
+                <p class="hero-lead">Search verified turfs, courts and pools by sport and city, see exactly which hours are open, and pay online. No calls to the manager, no double bookings.</p>
+
+                <form action="{% url 'turf_list' %}" method="get" class="search-panel">
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <input type="text" name="q" class="form-control" placeholder="Venue, sport or area">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="category" class="form-select">
+                                <option value="">Any sport</option>
+                                {% for category in categories %}
+                                <option value="{{ category.pk }}">{{ category.category_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="sort" class="form-select">
+                                <option value="newest">Newest</option>
+                                <option value="price_low">Cheapest</option>
+                                <option value="rating">Top rated</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button class="btn btn-amber"><i class="bi bi-search me-1"></i>Search</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="num">{{ stats.turfs }}</div>
+                        <div class="lbl">Venues listed</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="num">{{ stats.bookings }}</div>
+                        <div class="lbl">Slots reserved</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="num">{{ stats.categories }}</div>
+                        <div class="lbl">Sports covered</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="num">{{ stats.cities }}</div>
+                        <div class="lbl">Cities served</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card-chalk p-4">
+                    <h5 class="mb-3">Tonight at a glance</h5>
+                    {% for turf in latest_turfs|slice:":4" %}
+                    <a href="{{ turf.get_absolute_url }}" class="d-flex align-items-center gap-3 py-2 border-bottom text-decoration-none">
+                        <span class="thumb-sm thumb-sm--ph"><i class="bi {{ turf.category.icon }}"></i></span>
+                        <span class="flex-grow-1">
+                            <span class="d-block fw-semibold text-pitch">{{ turf.turf_name }}</span>
+                            <span class="d-block small text-muted-soft">{{ turf.category.category_name }} · {{ turf.city.name|default:"—" }}</span>
+                        </span>
+                        <span class="price-tag">₹{{ turf.price_per_hour|money }}</span>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted-soft mb-0">No venues yet. Run <code>python manage.py seed_data</code> to load sample data.</p>
+                    {% endfor %}
+                    <a href="{% url 'turf_list' %}" class="btn btn-outline-pitch w-100 mt-3">Browse all venues</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- sports -->
+<section class="section">
+    <div class="container">
+        <div class="section-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+            <div>
+                <h2>Pick your sport</h2>
+                <p>Every listing is checked for surface quality, lighting and washroom access before it goes live.</p>
+            </div>
+            <a href="{% url 'category_list' %}" class="btn btn-outline-pitch btn-sm">See all sports</a>
+        </div>
+
+        <div class="row g-3">
+            {% for category in categories %}
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{% url 'turf_list' %}?category={{ category.pk }}" class="sport-tile">
+                    <span class="icon"><i class="bi {{ category.icon }}"></i></span>
+                    <h3>{{ category.category_name }}</h3>
+                    <span>{{ category.total }} venue{{ category.total|pluralize }}</span>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12"><p class="text-muted-soft">No sport categories have been added yet.</p></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- featured venues -->
+<section class="section section--tint">
+    <div class="container">
+        <div class="section-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+            <div>
+                <h2>Grounds players keep going back to</h2>
+                <p>Rated by people who actually played there, not by us.</p>
+            </div>
+            <a href="{% url 'turf_list' %}" class="btn btn-outline-pitch btn-sm">View all</a>
+        </div>
+
+        <div class="row g-4">
+            {% for turf in featured_turfs %}
+            <div class="col-md-6 col-lg-4">
+                {% include 'partials/venue_card.html' with turf=turf %}
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="icon"><i class="bi bi-geo-alt"></i></div>
+                    <h5>No venues listed yet</h5>
+                    <p class="text-muted-soft">Sign in to the admin panel and add your first sports venue.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- how it works -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <h2>Four steps from search to kick-off</h2>
+            <p>The whole flow takes about a minute, and your slot is held the moment payment clears.</p>
+        </div>
+
+        <div class="row g-4 step-row">
+            <div class="col-md-6 col-lg-3">
+                <div class="step-item">
+                    <h4>Find a ground</h4>
+                    <p>Filter by sport, city and price per hour until you find a venue that fits your budget and schedule.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-item">
+                    <h4>Check the hours</h4>
+                    <p>The slot grid shows exactly which hours are already taken for the date you choose.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-item">
+                    <h4>Pay online</h4>
+                    <p>Pay by card or wallet. The total is calculated from the venue's hourly rate and your duration.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-item">
+                    <h4>Show up and play</h4>
+                    <p>Carry your booking reference. Afterwards, rate the venue so the next team knows what to expect.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- reviews -->
+{% if reviews %}
+<section class="section section--tint">
+    <div class="container">
+        <div class="section-head">
+            <h2>What players said last week</h2>
+            <p>Only people with a confirmed booking can post a review, so the ratings stay honest.</p>
+        </div>
+        <div class="row g-4">
+            {% for review in reviews %}
+            <div class="col-md-6 col-lg-4">
+                <div class="review-card">
+                    <div class="stars mb-2">
+                        {% for _ in review.star_range %}<i class="bi bi-star-fill"></i>{% endfor %}
+                        {% for _ in review.empty_range %}<i class="bi bi-star"></i>{% endfor %}
+                    </div>
+                    <p>{{ review.comment|default:"Great experience overall." }}</p>
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <span class="avatar-initials">{{ review.user.initials }}</span>
+                        <div>
+                            <div class="fw-semibold small">{{ review.user.full_name }}</div>
+                            <div class="small text-muted-soft">{{ review.turf.turf_name }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- call to action -->
+<section class="section">
+    <div class="container">
+        <div class="card-chalk p-4 p-lg-5 d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-left:4px solid var(--amber)">
+            <div>
+                <h2 class="mb-1">Own a turf or a court?</h2>
+                <p class="mb-0 text-muted-soft">List it on ArenaBook and manage bookings, payments and reviews from one admin panel.</p>
+            </div>
+            <a href="{% url 'contact' %}" class="btn btn-amber btn-lg">List your venue</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

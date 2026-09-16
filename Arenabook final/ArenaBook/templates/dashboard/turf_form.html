@@ -1,0 +1,155 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if turf %}Edit venue{% else %}Add venue{% endif %} — ArenaBook admin{% endblock %}
+{% block page_title %}{% if turf %}Edit venue{% else %}Add a venue{% endif %}{% endblock %}
+{% block page_sub %}{% if turf %}{{ turf.turf_name }}{% else %}List a new ground, court or pool{% endif %}{% endblock %}
+
+{% block top_actions %}
+<a href="{% url 'admin_turfs' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to venues</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="panel mb-3">
+                <div class="panel-head"><h5>Basic details</h5></div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label" for="{{ form.turf_name.id_for_label }}">Venue name</label>
+                            {{ form.turf_name }}
+                            {% for error in form.turf_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="{{ form.category.id_for_label }}">Sport category</label>
+                            {{ form.category }}
+                            {% for error in form.category.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel mb-3">
+                <div class="panel-head"><h5>Where is it?</h5></div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="{{ form.address.id_for_label }}">Street address</label>
+                            {{ form.address }}
+                            {% for error in form.address.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="{{ form.country.id_for_label }}">Country</label>
+                            {{ form.country }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="{{ form.state.id_for_label }}">State</label>
+                            {{ form.state }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="{{ form.city.id_for_label }}">City</label>
+                            {{ form.city }}
+                        </div>
+                    </div>
+                    <p class="small text-muted-soft mt-2 mb-0">Missing a city? Add it under <a href="{% url 'admin_locations' %}">Locations</a> first.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><h5>Pricing and hours</h5></div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ form.price_per_hour.id_for_label }}">Price per hour (₹)</label>
+                            {{ form.price_per_hour }}
+                            {% for error in form.price_per_hour.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ form.capacity.id_for_label }}">Capacity</label>
+                            {{ form.capacity }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ form.open_time.id_for_label }}">Opens at</label>
+                            {{ form.open_time }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ form.close_time.id_for_label }}">Closes at</label>
+                            {{ form.close_time }}
+                            {% for error in form.close_time.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="{{ form.amenities.id_for_label }}">Facilities</label>
+                            {{ form.amenities }}
+                            <div class="small text-muted-soft mt-1">Separate each one with a comma, e.g. Floodlights, Parking, Washroom.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel mb-3">
+                <div class="panel-head"><h5>Photos</h5></div>
+                <div class="panel-body">
+                    <label class="form-label" for="{{ form.image.id_for_label }}">Cover photo</label>
+                    {{ form.image }}
+                    {% if turf and turf.image %}
+                    <img src="{{ turf.image.url }}" class="img-fluid rounded mt-2" alt="">
+                    {% endif %}
+
+                    <label class="form-label mt-3" for="gallery">Gallery photos</label>
+                    <input type="file" name="gallery" id="gallery" class="form-control" multiple accept="image/*">
+                    <div class="small text-muted-soft mt-1">You can select several images at once.</div>
+
+                    {% if turf and turf.images.all %}
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        {% for pic in turf.images.all %}
+                        <div class="position-relative">
+                            <img src="{{ pic.image.url }}" class="thumb-sm" style="width:64px;height:52px" alt="">
+                            <button form="delImg{{ pic.pk }}" class="btn btn-sm btn-danger position-absolute top-0 end-0 p-0 px-1" style="font-size:.6rem" title="Remove">&times;</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel mb-3">
+                <div class="panel-head"><h5>Visibility</h5></div>
+                <div class="panel-body">
+                    <div class="form-check mb-2">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Listed on the website</label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.is_featured }}
+                        <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">Show in the popular section</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-amber"><i class="bi bi-check-lg me-1"></i>{% if turf %}Save changes{% else %}Create venue{% endif %}</button>
+                <a href="{% url 'admin_turfs' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if turf %}
+{% for pic in turf.images.all %}
+<form method="post" action="{% url 'admin_turf_image_delete' pic.pk %}" id="delImg{{ pic.pk }}" data-confirm="Remove this photo?">{% csrf_token %}</form>
+{% endfor %}
+{% endif %}
+{% endblock %}

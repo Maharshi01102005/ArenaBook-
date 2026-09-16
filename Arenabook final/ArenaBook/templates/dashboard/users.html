@@ -1,0 +1,76 @@
+{% extends 'dashboard/base.html' %}
+{% load arena_extras %}
+
+{% block title %}Users — ArenaBook admin{% endblock %}
+{% block page_title %}Registered users{% endblock %}
+{% block page_sub %}{{ page_obj.paginator.count }} account{{ page_obj.paginator.count|pluralize }} in total{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stat-card"><span class="ic ic-green"><i class="bi bi-person-check"></i></span><div><div class="val">{{ active_count }}</div><div class="lbl">Active accounts</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><span class="ic ic-amber"><i class="bi bi-person-badge"></i></span><div><div class="val">{{ staff_count }}</div><div class="lbl">Administrators</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><span class="ic ic-ink"><i class="bi bi-person-plus"></i></span><div><div class="val">{{ new_count }}</div><div class="lbl">Joined in last 30 days</div></div></div></div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Name or e-mail" style="width:240px">
+            <button class="btn btn-sm btn-pitch">Search</button>
+            <a href="{% url 'admin_users' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>User</th><th>Phone</th><th>Location</th><th>Bookings</th><th>Spent</th><th>Role</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                {% for row in users %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if row.avatar_url %}
+                            <img src="{{ row.avatar_url }}" class="thumb-sm rounded-circle" alt="">
+                            {% else %}
+                            <span class="avatar-initials">{{ row.initials }}</span>
+                            {% endif %}
+                            <div>
+                                <div class="fw-semibold">{{ row.full_name }}</div>
+                                <div class="small text-muted-soft">{{ row.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="small">{{ row.profile.phone_no|default:"—" }}</td>
+                    <td class="small">{{ row.profile.location|default:"—" }}</td>
+                    <td>{{ row.total_bookings }}</td>
+                    <td>₹{{ row.spent|default:0|money }}</td>
+                    <td>{% if row.is_superuser %}<span class="badge-status bg-danger-subtle text-danger-emphasis">Superuser</span>{% elif row.is_staff %}<span class="badge-status bg-warning-subtle text-warning-emphasis">Staff</span>{% else %}<span class="badge-status bg-secondary-subtle text-secondary-emphasis">Player</span>{% endif %}</td>
+                    <td>{% if row.is_active %}<span class="badge-status bg-success-subtle text-success-emphasis">Active</span>{% else %}<span class="badge-status bg-danger-subtle text-danger-emphasis">Blocked</span>{% endif %}</td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <a href="{% url 'admin_user_edit' row.pk %}" class="btn btn-sm btn-outline-pitch"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{% url 'admin_user_toggle' row.pk %}" data-confirm="Change access for {{ row.full_name }}?">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-toggle-{% if row.is_active %}on{% else %}off{% endif %}"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted-soft py-5">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="panel-body d-flex justify-content-center">
+        <ul class="pagination mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.previous_page_number %}">Previous</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% query_replace page=page_obj.next_page_number %}">Next</a></li>{% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

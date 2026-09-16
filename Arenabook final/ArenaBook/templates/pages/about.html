@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}About ArenaBook{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">About</li>
+            </ol>
+        </nav>
+        <h1>Why ArenaBook exists</h1>
+        <p>Because booking a ground should not involve six phone calls and a screenshot of a WhatsApp reply.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row g-5 align-items-start">
+            <div class="col-lg-7">
+                <h2>One place for every ground in your city</h2>
+                <p class="text-muted-soft">ArenaBook is a web-based reservation system for sports venues. Players search turfs and courts by sport, city and budget, see live slot availability for any date, and pay online. Venue owners get a single admin panel where they manage listings, bookings, payments and customer reviews.</p>
+                <p class="text-muted-soft">The platform was built as a Python and Django project for Infolabz IT Services. It uses a relational database with dedicated tables for users, profiles, locations, sport categories, venues, bookings, payments, reviews and contact enquiries.</p>
+
+                <h3 class="mt-5 mb-3">How a booking is protected</h3>
+                <div class="row g-4">
+                    <div class="col-sm-6">
+                        <div class="review-card">
+                            <h5>No double bookings</h5>
+                            <p class="mb-0">Every reservation is checked against existing pending and confirmed bookings for overlapping hours before it is accepted.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="review-card">
+                            <h5>Transparent pricing</h5>
+                            <p class="mb-0">The total is derived from the venue's hourly rate and the duration you pick, so there is nothing to negotiate at the gate.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="review-card">
+                            <h5>Verified reviews</h5>
+                            <p class="mb-0">Only players with a confirmed booking at that venue can post a rating, and each player can post once.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="review-card">
+                            <h5>Payment records</h5>
+                            <p class="mb-0">Each payment stores its method, status and transaction reference, and you can print an invoice from your bookings page.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card-chalk p-4">
+                    <h4 class="mb-3">Project at a glance</h4>
+                    <div class="summary-line"><span class="text-muted-soft">Framework</span><strong>Django (Python)</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Database</span><strong>SQLite / MySQL</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Front end</span><strong>Bootstrap 5 + custom theme</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Modules</span><strong>11 tables</strong></div>
+                    <div class="summary-line"><span class="text-muted-soft">Roles</span><strong>Player &amp; administrator</strong></div>
+                    <div class="summary-line total"><span>Built by</span><span>Infolabz</span></div>
+                    <a href="{% url 'turf_list' %}" class="btn btn-pitch w-100 mt-3">Start booking</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

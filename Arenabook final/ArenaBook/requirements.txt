@@ -1,0 +1,4 @@
+Django>=5.0,<6.0
+Pillow>=10.0.0
+# Optional - only if you switch the database to MySQL in settings.py
+# mysqlclient>=2.2.0
